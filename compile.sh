@@ -9,7 +9,7 @@ INPUT_FILE=""
 OUTPUT_FILE=""
 COMPILER_FLAGS=""
 VERBOSE=""
-IMAGE_NAME="msvc6-compiler"
+IMAGE_NAME="${MSVC6_IMAGE:-ghcr.io/marijnvdwerf/retro-toolchains:latest}"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do

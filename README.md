@@ -2,28 +2,49 @@
 
 This Docker setup allows you to compile C/C++ code using Microsoft Visual C++ 6.0 compiler through Wibo on any platform.
 
-## Architecture
-
-The Docker image is built for **x86_64/amd64** architecture and combines:
-- **MSVC 6.0 Compiler** from `ghcr.io/decompme/compilers/win32/msvc6.0:latest`
-- **Wibo** (Windows binary runner) from `ghcr.io/decompals/wibo:latest`
-
 ## Quick Start
 
-### 1. Build the Docker Image
+### Using Pre-built Image from GHCR
 
+Pull the latest image:
 ```bash
-docker build --platform linux/amd64 -t msvc6-compiler .
+docker pull ghcr.io/marijnvdwerf/retro-toolchains:latest
 ```
 
-### 2. Compile a File
+Compile directly with Docker:
+```bash
+# From file
+docker run --rm \
+  --platform linux/amd64 \
+  -v "/path/to/source:/input:ro" \
+  -v "/path/to/output:/output" \
+  -e "INPUT=/input/source.c" \
+  -e "OUTPUT=/output/output.obj" \
+  -e "COMPILER_FLAGS=/O2 /W3" \
+  ghcr.io/marijnvdwerf/retro-toolchains:latest
 
-Using the wrapper script (recommended):
+# From stdin
+cat source.c | docker run --rm -i \
+  --platform linux/amd64 \
+  -v "/path/to/output:/output" \
+  -e "INPUT=-" \
+  -e "OUTPUT=/output/output.obj" \
+  -e "COMPILER_FLAGS=/O2 /W3" \
+  ghcr.io/marijnvdwerf/retro-toolchains:latest
+```
+
+### Using the Wrapper Script
+
+Clone the repository and use the convenience script:
 
 ```bash
+git clone https://github.com/marijnvdwerf/retro-toolchains.git
+cd retro-toolchains
 chmod +x compile.sh
 ./compile.sh -i path/to/source.c [-o path/to/output.obj] [COMPILER_FLAGS...]
 ```
+
+The wrapper script will automatically use `ghcr.io/marijnvdwerf/retro-toolchains:latest` if available, or fall back to `msvc6-compiler:latest` if built locally.
 
 ### Examples
 
@@ -71,32 +92,22 @@ cat src/main.c | ./compile.sh -i - /W4
 
 Any additional arguments are passed directly to CL.EXE as compiler flags.
 
-## Manual Docker Usage
+## Building Locally
 
-If you prefer to use Docker directly:
+If you want to build the image yourself:
 
-From file:
 ```bash
-docker run --rm \
-  --platform linux/amd64 \
-  -v "/path/to/source:/input:ro" \
-  -v "/path/to/output:/output" \
-  -e "INPUT=/input/source.c" \
-  -e "OUTPUT=/output/output.obj" \
-  -e "COMPILER_FLAGS=/O2 /W3" \
-  msvc6-compiler
+docker build --platform linux/amd64 -t msvc6-compiler .
 ```
 
-From stdin:
-```bash
-cat source.c | docker run --rm -i \
-  --platform linux/amd64 \
-  -v "/path/to/output:/output" \
-  -e "INPUT=-" \
-  -e "OUTPUT=/output/output.obj" \
-  -e "COMPILER_FLAGS=/O2 /W3" \
-  msvc6-compiler
-```
+Then update the `IMAGE_NAME` variable in `compile.sh` to use `msvc6-compiler` instead of the GHCR image.
+
+## Architecture
+
+The Docker image is built for **x86_64/amd64** architecture and combines:
+- **MSVC 6.0 Compiler** from `ghcr.io/decompme/compilers/win32/msvc6.0:latest`
+- **Wibo** (Windows binary runner) from `ghcr.io/decompals/wibo:latest`
+- **Wibo DLLs** from `ghcr.io/decompme/compilers/common/wibo_dlls:latest`
 
 ## Common MSVC 6.0 Compiler Flags
 
