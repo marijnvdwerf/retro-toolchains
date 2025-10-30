@@ -4,11 +4,17 @@
 # Stage 1: Extract MSVC compiler from scratch image
 FROM --platform=linux/amd64 ghcr.io/decompme/compilers/win32/msvc6.0:latest AS msvc
 
-# Stage 2: Get Wibo and build final image
+# Stage 2: Extract Wibo DLLs (msvcrt and others needed by MSVC)
+FROM --platform=linux/amd64 ghcr.io/decompme/compilers/common/wibo_dlls:latest AS wibo_dlls
+
+# Stage 3: Get Wibo and build final image
 FROM --platform=linux/amd64 ghcr.io/decompals/wibo:latest
 
 # Copy MSVC compiler files from scratch image
 COPY --from=msvc /compilers/win32/msvc6.0 /compiler
+
+# Copy Wibo DLLs (required for MSVC runtime functions like isdigit)
+COPY --from=wibo_dlls /compilers/common/wibo_dlls /wibo_dlls
 
 # Create tmp directory for intermediate compilation files
 RUN mkdir -p /tmp/build
@@ -16,6 +22,7 @@ RUN mkdir -p /tmp/build
 # Set up environment variables
 ENV WIBO=/usr/local/sbin/wibo
 ENV COMPILER_DIR=/compiler
+ENV WIBO_PATH=/wibo_dlls
 ENV PATH="/usr/local/sbin:${PATH}"
 
 # Copy entrypoint script
