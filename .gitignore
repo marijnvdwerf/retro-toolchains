@@ -1,0 +1,7 @@
+# Test files and output
+test/
+*.obj
+*.o
+
+# Docker build cache
+.dockerignore
