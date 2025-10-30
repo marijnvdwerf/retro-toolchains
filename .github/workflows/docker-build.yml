@@ -54,6 +54,12 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        load: true
+
+    - name: Tag image for local testing
+      run: |
+        docker tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:main msvc6-compiler:latest || \
+        docker tag $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}" | head -1) msvc6-compiler:latest
 
     - name: Test compilation
       run: |
